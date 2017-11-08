@@ -1,13 +1,11 @@
 package hemant3370.com.qrreader;
 
 import android.Manifest;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.PointF;
 import android.inputmethodservice.InputMethodService;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AlertDialog;
 import android.view.View;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
@@ -36,6 +34,8 @@ public class QRInputIME extends InputMethodService implements QRCodeReaderView.O
 
          final View rootView  =
                 getLayoutInflater().inflate(R.layout.qr_scanner, null);
+        inputView = (QRCodeReaderView) rootView.findViewById(R.id.qrdecoderview);
+        inputView.setOnQRCodeReadListener(this);
          ImageView flashButton = rootView.findViewById(R.id.close_button);
         flashButton.setOnClickListener(new View.OnClickListener() {
              @Override
@@ -57,8 +57,7 @@ public class QRInputIME extends InputMethodService implements QRCodeReaderView.O
                 }
             }
         });
-         inputView = (QRCodeReaderView) rootView.findViewById(R.id.qrdecoderview);
-                 inputView.setOnQRCodeReadListener(this);
+
         // Use this function to enable/disable decoding
         inputView.setQRDecodingEnabled(true);
 
@@ -69,28 +68,14 @@ public class QRInputIME extends InputMethodService implements QRCodeReaderView.O
 
         inputView.setBackCamera();
         if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
 
             inputView.startCamera();
         }
         else{
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("Camera permission required for scanning QR Code.");
-            // Create the AlertDialog object and return it
-            builder.setPositiveButton("Allow", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    Intent myActivity = new Intent(QRInputIME.this, MainActivity.class);
-                    startActivity(myActivity);
-                }
-            });
-            builder.setNegativeButton("Deny", new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    QRInputIME.this.hideWindow();
-                }
-            });
-            builder.create().show();
+            Intent myActivity = new Intent(QRInputIME.this, MainActivity.class);
+            myActivity.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(myActivity);
         }
         return rootView;
     }
