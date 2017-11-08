@@ -1,4 +1,4 @@
-package hemant3370.com.qrreader
+package hemant3370.com.qrreader.Activities
 
 import android.annotation.TargetApi
 import android.content.Context
@@ -16,6 +16,7 @@ import android.preference.PreferenceManager
 import android.preference.RingtonePreference
 import android.text.TextUtils
 import android.view.MenuItem
+import hemant3370.com.qrreader.R
 
 /**
  * A [PreferenceActivity] that presents a set of application settings. On

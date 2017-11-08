@@ -1,4 +1,4 @@
-package hemant3370.com.qrreader
+package hemant3370.com.qrreader.Activities
 
 import android.content.res.Configuration
 import android.os.Bundle

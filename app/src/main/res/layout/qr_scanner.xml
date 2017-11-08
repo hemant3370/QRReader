@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <com.dlazaro66.qrcodereaderview.QRCodeReaderView
@@ -11,7 +9,7 @@
         android:layout_height="match_parent"
          />
 
-    <android.support.v7.widget.AppCompatImageView
+    <android.support.v7.widget.AppCompatImageButton
         android:id="@+id/close_button"
         android:layout_width="36dp"
         android:layout_height="36dp"
@@ -23,7 +21,7 @@
         app:layout_constraintEnd_toEndOf="parent"
          />
 
-    <android.support.v7.widget.AppCompatImageView
+    <android.support.v7.widget.AppCompatImageButton
         android:id="@+id/switch_button"
         android:layout_width="36dp"
         android:layout_height="36dp"
