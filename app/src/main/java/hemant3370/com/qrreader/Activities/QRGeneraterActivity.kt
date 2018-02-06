@@ -2,6 +2,8 @@ package hemant3370.com.qrreader.Activities
 
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.widget.ImageButton
@@ -11,9 +13,9 @@ import hemant3370.com.qrreader.R
 import net.glxn.qrgen.android.QRCode
 
 
-class QRGeneraterActivity : AppCompatActivity() {
+ class QRGeneraterActivity : AppCompatActivity() {
 
-    var imageView: ImageView? = null
+     var imageView: ImageView? = null
     var textView: TextView? = null
     var bitMap: Bitmap? = null
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,10 +26,10 @@ class QRGeneraterActivity : AppCompatActivity() {
         handleIntent(intent)
         val shareButton = findViewById<ImageButton>(R.id.share_button)
         shareButton.setOnClickListener{
-            
+
         }
         val saveButton = findViewById<ImageButton>(R.id.save_button)
-
+        window.setBackgroundDrawable(ColorDrawable(Color.TRANSPARENT))
     }
 
     override fun onNewIntent(intent: Intent?) {
