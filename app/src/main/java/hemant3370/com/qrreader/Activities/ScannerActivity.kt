@@ -2,6 +2,7 @@ package hemant3370.com.qrreader.Activities
 
 import android.Manifest
 import android.app.Activity
+import android.arch.persistence.room.Room
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -16,8 +17,7 @@ import android.widget.ImageView
 import android.widget.Toast
 import com.dlazaro66.qrcodereaderview.QRCodeReaderView
 import hemant3370.com.qrreader.R
-
-
+import hemant3370.com.qrreader.Storage.QRDatabase
 
 
 class ScannerActivity : AppCompatActivity(), QRCodeReaderView.OnQRCodeReadListener {
@@ -25,9 +25,12 @@ class ScannerActivity : AppCompatActivity(), QRCodeReaderView.OnQRCodeReadListen
 
     private var inputView: QRCodeReaderView? = null
     private var isTorchOn = false
+    internal lateinit var db: QRDatabase
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_scanner)
+        db = Room.databaseBuilder(applicationContext,
+                QRDatabase::class.java, "qr.db").fallbackToDestructiveMigration().build()
         supportActionBar?.setHomeButtonEnabled(true)
         inputView = findViewById(R.id.qrdecoderview)
         inputView?.setOnQRCodeReadListener(this)

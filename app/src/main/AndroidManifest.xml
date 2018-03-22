@@ -3,7 +3,7 @@
     package="hemant3370.com.qrreader">
 
     <uses-permission android:name="android.permission.CAMERA" />
-
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-feature android:name="android.hardware.camera" />
 
     <application
@@ -48,7 +48,12 @@
             android:exported="false"
             android:label="Clipboard Monitor" />
 
-        <activity android:name=".Activities.ScannerActivity" />
+        <activity android:name=".Activities.ScannerActivity"
+            android:parentActivityName=".Activities.MainActivity">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".Activities.MainActivity" />
+        </activity>
         <activity android:name="hemant3370.com.qrreader.Activities.QRGeneraterActivity"
             android:label="QR Code">
             <intent-filter>

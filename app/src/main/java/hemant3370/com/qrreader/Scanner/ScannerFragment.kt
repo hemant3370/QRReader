@@ -35,7 +35,7 @@ class ScannerFragment : BottomSheetDialogFragment(), QRCodeReaderView.OnQRCodeRe
         val rootView = inflater?.inflate(R.layout.fragment_scanner, container, false)
         inputView = rootView?.findViewById<View>(R.id.qrdecoderview) as QRCodeReaderView
         inputView?.setOnQRCodeReadListener(this)
-        val flashButton = rootView?.findViewById<ImageView>(R.id.close_button)
+        val flashButton = rootView.findViewById<ImageView>(R.id.close_button)
         flashButton?.setOnClickListener {
             isTorchOn = !isTorchOn
             inputView?.setTorchEnabled(isTorchOn)
