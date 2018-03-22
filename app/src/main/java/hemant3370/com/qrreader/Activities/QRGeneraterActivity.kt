@@ -12,6 +12,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.support.v4.app.ActivityCompat
 import android.support.v7.app.AppCompatActivity
+import android.view.View
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
@@ -19,6 +20,8 @@ import android.widget.Toast
 import hemant3370.com.qrreader.R
 import hemant3370.com.qrreader.Storage.QRDatabase
 import hemant3370.com.qrreader.Storage.QRModel
+import hemant3370.com.qrreader.Utils.Utils
+import kotlinx.android.synthetic.main.activity_qrgenerater.*
 import net.glxn.qrgen.android.QRCode
 import java.io.ByteArrayOutputStream
 import java.util.*
@@ -40,6 +43,10 @@ class QRGeneraterActivity : AppCompatActivity() {
         imageView = findViewById(R.id.qr_imageView)
         textView = findViewById(R.id.qr_text)
         handleIntent(intent)
+        val uri = QRGeneraterActivity.getImageUri(this, bitMap!!, text)
+        Thread(Runnable {
+            db.daoAccess().insertOnlySingleRecord(QRModel(text,uri.toString(), Date().toString()))
+        }).start()
         val shareButton = findViewById<ImageButton>(R.id.share_button)
         shareButton.setOnClickListener{
             shareQR()
@@ -47,17 +54,17 @@ class QRGeneraterActivity : AppCompatActivity() {
         val saveButton = findViewById<ImageButton>(R.id.save_button)
         saveButton.setOnClickListener{
             if (isStoragePermissionGranted() && bitMap != null) {
-                val uri = QRGeneraterActivity.getImageUri(this, bitMap!!, text)
-                Thread(Runnable {
-                    db.daoAccess().insertOnlySingleRecord(QRModel(text,uri.toString(), Date().toString()))
-                }).start()
                 val i = Intent()
                 i.action = android.content.Intent.ACTION_VIEW
                 i.setDataAndType(uri, "image/jpeg")
                 startActivity(i)
             }
         }
-
+        website_button.setOnClickListener(
+                {
+                   Utils.openIfUrl(text, this)
+                }
+        )
     }
     fun shareQR(){
         if (isStoragePermissionGranted() && bitMap != null) {
@@ -108,6 +115,9 @@ class QRGeneraterActivity : AppCompatActivity() {
         if (text != null && text.isNotEmpty() && text.isNotBlank()){
             this.text = text.toString()
             textView?.setText(text)
+            if (!Utils.checkForURL(text.toString())){
+                website_button.visibility = View.GONE
+            }
             bitMap = QRCode.from(text.toString()).bitmap()
             imageView?.setImageBitmap(bitMap)
 

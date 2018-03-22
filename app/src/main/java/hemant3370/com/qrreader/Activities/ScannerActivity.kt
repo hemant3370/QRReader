@@ -9,7 +9,9 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.PointF
+import android.os.Build
 import android.os.Bundle
+import android.support.v4.app.ActivityCompat
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
 import android.view.View
@@ -39,7 +41,11 @@ class ScannerActivity : AppCompatActivity(), QRCodeReaderView.OnQRCodeReadListen
             isTorchOn = !isTorchOn
             inputView?.setTorchEnabled(isTorchOn)
         }
-
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
+            }
+        }
         val switchButton = findViewById<ImageView>(R.id.switch_button)
         switchButton.visibility = View.GONE
         // Use this function to enable/disable decoding

@@ -4,7 +4,6 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.provider.Settings
@@ -28,7 +27,6 @@ import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
 import net.glxn.qrgen.android.QRCode
 import java.util.*
-import java.util.regex.Pattern
 
 
 
@@ -39,7 +37,10 @@ class MainActivity : AppCompatActivity() {
     private var db: QRDatabase? = null
     private val mUiHandler = Handler()
     private lateinit var mDbWorkerThread: DbWorkerThread
-    val URL_REGEX = "^((https?|ftp)://|(www|ftp)\\.)?[a-z0-9-]+(\\.[a-z0-9-]+)+([/?].*)?$"
+    private var text: String? = null
+    val listener: ((QRModel) -> Unit) = {
+        openDetails(it.text)
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -47,18 +48,11 @@ class MainActivity : AppCompatActivity() {
         mDbWorkerThread = DbWorkerThread("dbWorkerThread")
         mDbWorkerThread.start()
         db = QRDatabase.getInstance(this)
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
 
-            ActivityCompat.requestPermissions(this,
-                    arrayOf(Manifest.permission.CAMERA),
-                    RESULT_SCAN)
-
-        }
         if (!ourKeyboardEnabled()) {
             val simpleAlert = AlertDialog.Builder(this@MainActivity).create()
             simpleAlert.setTitle("Permission")
-            simpleAlert.setMessage("Do you want QR Scanning built into your keyboard?")
+            simpleAlert.setMessage("Do you want QR Scanning built into your keyboard? If Yes, Android will warn you about critical Information Leaks. Relax, Our's is a QR Scanner and not a generic keyboard. Plus this a offline App.")
 
             simpleAlert.setButton(AlertDialog.BUTTON_POSITIVE, "Yes", { dialogInterface, i ->
                 startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS))
@@ -74,22 +68,50 @@ class MainActivity : AppCompatActivity() {
             val list =
                     db?.daoAccess()?.fetchAllData()
             mUiHandler.post({
-                pastRecyclerView.adapter = PastQRcodeAdapter(list!!){
-                    Toast.makeText(this,it.text, Toast.LENGTH_SHORT).show()
-                }
+                pastRecyclerView.adapter = PastQRcodeAdapter(list!!, listener)
             })
         }
         mDbWorkerThread.postTask(task)
 
         fab.setOnClickListener { _ ->
-            val scanner = Intent(this, ScannerActivity::class.java)
-            startActivityForResult(scanner, RESULT_SCAN)
+            if (isCameraDisabled()){
+                ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.CAMERA),
+                        RESULT_SCAN)
+            }
+            else{
+
+                openScanner()
+            }
         }
     }
-    fun checkForURL(text: String?) : Boolean {
-        val p = Pattern.compile(URL_REGEX)
-        val m = p.matcher(text)//replace with string to compare
-        return m.find()
+    fun openScanner(){
+        val scanner = Intent(this, ScannerActivity::class.java)
+        startActivityForResult(scanner, RESULT_SCAN)
+    }
+    fun openDetails(text: String){
+        val intent = Intent(this, QRGeneraterActivity::class.java)
+        intent.putExtra(Intent.EXTRA_PROCESS_TEXT, text)
+        startActivity(intent)
+    }
+    fun storeInHistory(text: String?){
+        if (text != null) {
+            this.text = text
+            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                Thread(Runnable {
+                    db?.daoAccess()?.insertOnlySingleRecord(QRModel(text, QRGeneraterActivity.getImageUri(this, QRCode.from(text).bitmap(), text).toString(), Date().toString()))
+                    val list = db?.daoAccess()?.fetchAllData()
+                    runOnUiThread {
+                        pastRecyclerView.adapter = PastQRcodeAdapter(list!!, listener)
+                    }
+                }).start()
+
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE),
+                        RESULT_SCAN)
+            }
+        }
     }
     fun ourKeyboardEnabled(): Boolean{
         val packageLocal = packageName
@@ -103,6 +125,10 @@ class MainActivity : AppCompatActivity() {
         }
         return false
     }
+    fun isCameraDisabled(): Boolean {
+        return ContextCompat.checkSelfPermission(this,
+                        Manifest.permission.CAMERA) == PackageManager.PERMISSION_DENIED
+    }
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
@@ -110,13 +136,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
+        when (item.itemId) {
+            R.id.action_settings -> consume { startActivity(Intent(Settings.ACTION_INPUT_METHOD_SETTINGS)) }
+            else -> { // Note the block
+                return super.onOptionsItemSelected(item)
+            }
         }
+        return true
+    }
+    inline fun consume(f: () -> Unit): Boolean {
+        f()
+        return true
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -125,14 +155,7 @@ class MainActivity : AppCompatActivity() {
             // Make sure the request was successful
             if (resultCode == RESULT_OK) {
                 val result = data?.getStringExtra("result")
-                Thread(Runnable {
-                    db?.daoAccess()?.insertOnlySingleRecord(QRModel(result!!, QRGeneraterActivity.getImageUri(this, QRCode.from(result).bitmap(), result).toString(), Date().toString()))
-                }).start()
-                if (result != null && checkForURL(result)) {
-                    val i = Intent(Intent.ACTION_VIEW)
-                    i.data = Uri.parse(result)
-                    startActivity(i)
-                }
+                    storeInHistory(result)
             }
         }
     }
@@ -140,6 +163,14 @@ class MainActivity : AppCompatActivity() {
                                             permissions: Array<String>, grantResults: IntArray) {
         when (requestCode) {
             RESULT_SCAN -> {
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    if ((permissions.contains(Manifest.permission.CAMERA))) {
+                        openScanner()
+                    }
+                    if ((permissions.contains(Manifest.permission.WRITE_EXTERNAL_STORAGE))){
+                        storeInHistory(text)
+                    }
+                }
                 return
             }
         }// other 'case' lines to check for other

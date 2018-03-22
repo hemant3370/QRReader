@@ -10,9 +10,9 @@ android {
     compileSdkVersion 26
     defaultConfig {
         applicationId "hemant3370.com.qrreader"
-        minSdkVersion 19
+        minSdkVersion 23
         targetSdkVersion 26
-        versionCode 1
+        versionCode 2
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         vectorDrawables.useSupportLibrary = true
