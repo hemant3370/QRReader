@@ -82,4 +82,13 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="scan_qr">Scan</string>
+    <string name="empty_history">No scans yet.\nTap Scan to read a QR code.</string>
+    <string name="share">Share</string>
+    <string name="open">Open</string>
+    <string name="save">Save</string>
+    <string name="qr_code">QR code</string>
+    <string name="scan_hint">Point the camera at a QR code</string>
+    <string name="toggle_flash">Toggle flash</string>
+    <string name="switch_keyboard">Switch keyboard</string>
 </resources>

@@ -1,34 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:background="?attr/colorSurface"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-    <com.dlazaro66.qrcodereaderview.QRCodeReaderView
-        android:id="@+id/qrdecoderview"
+    <com.google.android.material.card.MaterialCardView
+        style="?attr/materialCardViewElevatedStyle"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-         />
+        app:cardElevation="6dp"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.QRReader.TopRounded">
 
-    <android.support.v7.widget.AppCompatImageButton
+        <com.dlazaro66.qrcodereaderview.QRCodeReaderView
+            android:id="@+id/qrdecoderview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/close_button"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        app:srcCompat="@drawable/ic_flash_on_black_24dp"
-        android:background="@android:color/white"
-        android:layout_marginBottom="32dp"
-        android:layout_marginEnd="32dp"
+        style="@style/Widget.Material3.FloatingActionButton.Small.Surface"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:layout_marginEnd="20dp"
+        android:contentDescription="@string/toggle_flash"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-         />
+        app:srcCompat="@drawable/ic_flash_on_black_24dp" />
 
-    <android.support.v7.widget.AppCompatImageButton
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/switch_button"
-        android:layout_width="36dp"
-        android:layout_height="36dp"
-        android:layout_marginBottom="32dp"
-        android:layout_marginStart="32dp"
-        app:srcCompat="@drawable/ic_language_black_24dp"
-        android:background="@android:color/white"
+        style="@style/Widget.Material3.FloatingActionButton.Small.Surface"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:layout_marginStart="20dp"
+        android:contentDescription="@string/switch_keyboard"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-</android.support.constraint.ConstraintLayout>
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/ic_language_black_24dp" />
+</androidx.constraintlayout.widget.ConstraintLayout>

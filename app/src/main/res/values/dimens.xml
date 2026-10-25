@@ -1,3 +1,6 @@
 <resources>
     <dimen name="fab_margin">16dp</dimen>
+    <dimen name="list_bottom_padding">88dp</dimen>
+    <dimen name="screen_padding">24dp</dimen>
+    <dimen name="keyboard_height">260dp</dimen>
 </resources>

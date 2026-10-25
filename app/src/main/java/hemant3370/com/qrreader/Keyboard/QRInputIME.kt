@@ -6,8 +6,13 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.PointF
 import android.inputmethodservice.InputMethodService
-import android.support.v4.content.ContextCompat
+import androidx.core.content.ContextCompat
+import android.view.ContextThemeWrapper
+import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.Toast
@@ -40,7 +45,16 @@ class QRInputIME : InputMethodService(), QRCodeReaderView.OnQRCodeReadListener {
 
     override fun onCreateInputView(): View {
 
-        val rootView = layoutInflater.inflate(R.layout.qr_scanner, null)
+        val rootView = LayoutInflater.from(ContextThemeWrapper(this, R.style.AppTheme)).inflate(R.layout.qr_scanner, null)
+        // Keyboard-sized panel; grow by the nav bar height so the buttons stay above it
+        val panelHeight = resources.getDimensionPixelSize(R.dimen.keyboard_height)
+        rootView.layoutParams = ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, panelHeight)
+        ViewCompat.setOnApplyWindowInsetsListener(rootView) { v, insets ->
+            val nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars())
+            v.setPadding(nav.left, 0, nav.right, nav.bottom)
+            v.layoutParams = v.layoutParams.apply { height = panelHeight + nav.bottom }
+            insets
+        }
         inputView = rootView.findViewById(R.id.qrdecoderview)
         inputView?.setOnQRCodeReadListener(this)
         val flashButton = rootView.findViewById<ImageView>(R.id.close_button)
@@ -49,12 +63,19 @@ class QRInputIME : InputMethodService(), QRCodeReaderView.OnQRCodeReadListener {
             inputView?.setTorchEnabled(isTorchOn)
         }
 
+        // Same behaviour as the system keyboards: tap cycles to the next keyboard,
+        // long-press opens the keyboard picker.
         val switchButton = rootView.findViewById<ImageView>(R.id.switch_button)
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         switchButton.setOnClickListener {
-            val imeManager = applicationContext.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-                if (!imeManager.switchToLastInputMethod(window.window!!.attributes.token)) {
-                    imeManager.switchToNextInputMethod(window.window!!.attributes.token, false)
-                }
+            val token = window.window?.attributes?.token
+            if (token == null || !imm.switchToNextInputMethod(token, false)) {
+                imm.showInputMethodPicker()
+            }
+        }
+        switchButton.setOnLongClickListener {
+            imm.showInputMethodPicker()
+            true
         }
 
         // Use this function to enable/disable decoding

@@ -2,7 +2,7 @@ package hemant3370.com.qrreader.Activities
 
 import android.Manifest
 import android.app.Activity
-import android.arch.persistence.room.Room
+import androidx.room.Room
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
@@ -11,10 +11,14 @@ import android.content.pm.PackageManager
 import android.graphics.PointF
 import android.os.Build
 import android.os.Bundle
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.appcompat.app.AppCompatActivity
 import android.view.View
+import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import android.widget.ImageView
 import android.widget.Toast
 import com.dlazaro66.qrcodereaderview.QRCodeReaderView
@@ -34,6 +38,12 @@ class ScannerActivity : AppCompatActivity(), QRCodeReaderView.OnQRCodeReadListen
         db = Room.databaseBuilder(applicationContext,
                 QRDatabase::class.java, "qr.db").fallbackToDestructiveMigration().build()
         supportActionBar?.setHomeButtonEnabled(true)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.scanner_root)) { _, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            findViewById<View>(R.id.scan_hint).updateLayoutParams<ViewGroup.MarginLayoutParams> { topMargin = bars.top + 32 }
+            findViewById<View>(R.id.close_button).updateLayoutParams<ViewGroup.MarginLayoutParams> { bottomMargin = bars.bottom + 32 }
+            insets
+        }
         inputView = findViewById(R.id.qrdecoderview)
         inputView?.setOnQRCodeReadListener(this)
         val flashButton = findViewById<ImageView>(R.id.close_button)
@@ -41,13 +51,13 @@ class ScannerActivity : AppCompatActivity(), QRCodeReaderView.OnQRCodeReadListen
             isTorchOn = !isTorchOn
             inputView?.setTorchEnabled(isTorchOn)
         }
-        if (Build.VERSION.SDK_INT >= 23) {
+        if (Build.VERSION.SDK_INT in 23..28) {
             if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.WRITE_EXTERNAL_STORAGE), 1)
             }
         }
-        val switchButton = findViewById<ImageView>(R.id.switch_button)
-        switchButton.visibility = View.GONE
+
+
         // Use this function to enable/disable decoding
         inputView?.setQRDecodingEnabled(true)
 

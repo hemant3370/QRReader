@@ -1,7 +1,8 @@
 package hemant3370.com.qrreader.Activities
 
 import android.Manifest
-import android.arch.persistence.room.Room
+import androidx.room.Room
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -10,10 +11,11 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.support.v4.app.ActivityCompat
-import android.support.v7.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
+import androidx.appcompat.app.AppCompatActivity
 import android.view.View
-import android.widget.ImageButton
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -21,9 +23,7 @@ import hemant3370.com.qrreader.R
 import hemant3370.com.qrreader.Storage.QRDatabase
 import hemant3370.com.qrreader.Storage.QRModel
 import hemant3370.com.qrreader.Utils.Utils
-import kotlinx.android.synthetic.main.activity_qrgenerater.*
 import net.glxn.qrgen.android.QRCode
-import java.io.ByteArrayOutputStream
 import java.util.*
 
 
@@ -33,6 +33,7 @@ class QRGeneraterActivity : AppCompatActivity() {
     var textView: TextView? = null
     var bitMap: Bitmap? = null
     var text: String = ""
+    private lateinit var websiteButton: View
     internal lateinit var db: QRDatabase
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +41,14 @@ class QRGeneraterActivity : AppCompatActivity() {
         setContentView(R.layout.activity_qrgenerater)
         db = Room.databaseBuilder(applicationContext,
                 QRDatabase::class.java, "qr.db").fallbackToDestructiveMigration().build()
+        websiteButton = findViewById(R.id.website_button)
+        setSupportActionBar(findViewById(R.id.toolbar))
+        supportActionBar?.setDisplayHomeAsUpEnabled(true)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.root)) { v, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom)
+            insets
+        }
         imageView = findViewById(R.id.qr_imageView)
         textView = findViewById(R.id.qr_text)
         handleIntent(intent)
@@ -47,11 +56,11 @@ class QRGeneraterActivity : AppCompatActivity() {
         Thread(Runnable {
             db.daoAccess().insertOnlySingleRecord(QRModel(text,uri.toString(), Date().toString()))
         }).start()
-        val shareButton = findViewById<ImageButton>(R.id.share_button)
+        val shareButton = findViewById<View>(R.id.share_button)
         shareButton.setOnClickListener{
             shareQR()
         }
-        val saveButton = findViewById<ImageButton>(R.id.save_button)
+        val saveButton = findViewById<View>(R.id.save_button)
         saveButton.setOnClickListener{
             if (isStoragePermissionGranted() && bitMap != null) {
                 val i = Intent()
@@ -60,7 +69,7 @@ class QRGeneraterActivity : AppCompatActivity() {
                 startActivity(i)
             }
         }
-        website_button.setOnClickListener(
+        websiteButton.setOnClickListener(
                 {
                    Utils.openIfUrl(text, this)
                 }
@@ -78,16 +87,27 @@ class QRGeneraterActivity : AppCompatActivity() {
 
     companion object {
         fun getImageUri(inContext: Context, inImage: Bitmap, text: String): Uri {
-            val bytes = ByteArrayOutputStream()
-            inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes)
-            val path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, text, null)
-            return Uri.parse(path)
+            if (Build.VERSION.SDK_INT < 29) {
+                val path = MediaStore.Images.Media.insertImage(inContext.contentResolver, inImage, text, null)
+                return Uri.parse(path)
+            }
+            // Scoped storage: insert through MediaStore, no storage permission needed
+            val values = ContentValues().apply {
+                put(MediaStore.Images.Media.DISPLAY_NAME, "QR_${System.currentTimeMillis()}.jpg")
+                put(MediaStore.Images.Media.TITLE, text)
+                put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg")
+                put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/QRReader")
+            }
+            val resolver = inContext.contentResolver
+            val uri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values)!!
+            resolver.openOutputStream(uri)!!.use { inImage.compress(Bitmap.CompressFormat.JPEG, 100, it) }
+            return uri
         }
     }
 
 
     fun isStoragePermissionGranted(): Boolean {
-        if (Build.VERSION.SDK_INT >= 23) {
+        if (Build.VERSION.SDK_INT in 23..28) {
             if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 return true
             } else {
@@ -116,7 +136,7 @@ class QRGeneraterActivity : AppCompatActivity() {
             this.text = text.toString()
             textView?.setText(text)
             if (!Utils.checkForURL(text.toString())){
-                website_button.visibility = View.GONE
+                websiteButton.visibility = View.GONE
             }
             bitMap = QRCode.from(text.toString()).bitmap()
             imageView?.setImageBitmap(bitMap)
