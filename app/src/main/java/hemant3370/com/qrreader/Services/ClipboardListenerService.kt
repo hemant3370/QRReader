@@ -38,7 +38,7 @@ class ClipboardListenerService: Service() {
      private val mOnPrimaryClipChangedListener = object : ClipboardManager.OnPrimaryClipChangedListener {
         override fun onPrimaryClipChanged() {
             val clip = mClipboardManager!!.getPrimaryClip()
-            Toast.makeText(this@ClipboardListenerService,clip.getItemAt(0).text,Toast.LENGTH_SHORT).show()
+            Toast.makeText(this@ClipboardListenerService,clip?.getItemAt(0)?.text,Toast.LENGTH_SHORT).show()
         }
     }
 

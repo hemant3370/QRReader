@@ -4,27 +4,32 @@ import android.Manifest
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.provider.Settings
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
-import android.support.v7.app.AlertDialog
-import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.appcompat.app.AlertDialog
+import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import android.view.Menu
+import android.view.View
 import android.view.MenuItem
 import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
 import android.widget.Toast
-import hemant3370.com.qrreader.Adapters.PastQRcodeAdapter
+import android.view.ViewGroup
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import hemant3370.com.qrreader.R
+import hemant3370.com.qrreader.Adapters.PastQRcodeAdapter
+import hemant3370.com.qrreader.databinding.ActivityMainBinding
 import hemant3370.com.qrreader.Services.ClipboardListenerService
 import hemant3370.com.qrreader.Storage.QRDatabase
 import hemant3370.com.qrreader.Storage.QRModel
 import hemant3370.com.qrreader.Utils.DbWorkerThread
-import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.content_main.*
 import net.glxn.qrgen.android.QRCode
 import java.util.*
 
@@ -38,13 +43,26 @@ class MainActivity : AppCompatActivity() {
     private val mUiHandler = Handler()
     private lateinit var mDbWorkerThread: DbWorkerThread
     private var text: String? = null
+    private lateinit var binding: ActivityMainBinding
     val listener: ((QRModel) -> Unit) = {
         openDetails(it.text)
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        setSupportActionBar(toolbar)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+        setSupportActionBar(binding.toolbar)
+        // Edge-to-edge is enforced on recent Android versions; keep content clear of the system bars
+        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { _, insets ->
+            val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+            binding.appBar.setPadding(0, bars.top, 0, 0)
+            binding.fab.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                bottomMargin = resources.getDimensionPixelSize(R.dimen.fab_margin) + bars.bottom
+                rightMargin = resources.getDimensionPixelSize(R.dimen.fab_margin) + bars.right
+            }
+            binding.content.pastRecyclerView.setPadding(0, 0, 0, resources.getDimensionPixelSize(R.dimen.list_bottom_padding) + bars.bottom)
+            insets
+        }
         mDbWorkerThread = DbWorkerThread("dbWorkerThread")
         mDbWorkerThread.start()
         db = QRDatabase.getInstance(this)
@@ -63,17 +81,17 @@ class MainActivity : AppCompatActivity() {
             simpleAlert.show()
         }
         startService(Intent(this, ClipboardListenerService::class.java))
-        pastRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayout.VERTICAL, false)
+        binding.content.pastRecyclerView.layoutManager = LinearLayoutManager(this, LinearLayout.VERTICAL, false)
         val task = Runnable {
             val list =
                     db?.daoAccess()?.fetchAllData()
             mUiHandler.post({
-                pastRecyclerView.adapter = PastQRcodeAdapter(list!!, listener)
+                showHistory(list!!)
             })
         }
         mDbWorkerThread.postTask(task)
 
-        fab.setOnClickListener { _ ->
+        binding.fab.setOnClickListener { _ ->
             if (isCameraDisabled()){
                 ActivityCompat.requestPermissions(this,
                         arrayOf(Manifest.permission.CAMERA),
@@ -84,6 +102,10 @@ class MainActivity : AppCompatActivity() {
                 openScanner()
             }
         }
+    }
+    private fun showHistory(list: List<QRModel>) {
+        binding.content.pastRecyclerView.adapter = PastQRcodeAdapter(list, listener)
+        binding.content.emptyView.visibility = if (list.isEmpty()) View.VISIBLE else View.GONE
     }
     fun openScanner(){
         val scanner = Intent(this, ScannerActivity::class.java)
@@ -97,12 +119,12 @@ class MainActivity : AppCompatActivity() {
     fun storeInHistory(text: String?){
         if (text != null) {
             this.text = text
-            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            if (Build.VERSION.SDK_INT >= 29 || checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 Thread(Runnable {
                     db?.daoAccess()?.insertOnlySingleRecord(QRModel(text, QRGeneraterActivity.getImageUri(this, QRCode.from(text).bitmap(), text).toString(), Date().toString()))
                     val list = db?.daoAccess()?.fetchAllData()
                     runOnUiThread {
-                        pastRecyclerView.adapter = PastQRcodeAdapter(list!!, listener)
+                        showHistory(list!!)
                     }
                 }).start()
 

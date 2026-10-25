@@ -1,67 +1,106 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     tools:context="hemant3370.com.qrreader.Activities.QRGeneraterActivity">
 
-    <ImageView
-        android:id="@+id/qr_imageView"
-        android:layout_width="0dp"
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        app:title="@string/qr_code" />
+
+    <LinearLayout
+        android:id="@+id/content"
+        android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        app:layout_constraintBottom_toTopOf="@+id/qr_text"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@mipmap/ic_launcher" />
+        android:layout_weight="1"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="@dimen/screen_padding">
+
+    <com.google.android.material.card.MaterialCardView
+        style="?attr/materialCardViewElevatedStyle"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginBottom="16dp">
+
+        <ImageView
+            android:id="@+id/qr_imageView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@android:color/white"
+            android:contentDescription="@string/qr_code"
+            android:padding="16dp"
+            android:scaleType="fitCenter" />
+    </com.google.android.material.card.MaterialCardView>
 
     <TextView
         android:id="@+id/qr_text"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        android:text="TextView"
-        app:layout_constraintBottom_toTopOf="@+id/save_button"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        android:layout_marginBottom="24dp"
+        android:gravity="center"
+        android:maxLines="4"
+        android:ellipsize="end"
+        android:textAppearance="?attr/textAppearanceBodyLarge"
+        tools:text="https://example.com" />
 
-    <ImageButton
-        android:id="@+id/share_button"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:layout_marginStart="32dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/save_button"
-        app:srcCompat="?attr/actionModeShareDrawable" />
+        android:orientation="horizontal">
 
-    <ImageButton
-        android:id="@+id/website_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:layout_marginEnd="8dp"
-        android:layout_marginStart="8dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/save_button"
-        app:layout_constraintStart_toEndOf="@+id/share_button"
-        app:layout_constraintTop_toTopOf="@+id/save_button"
-        app:srcCompat="@drawable/ic_public_black_24dp" />
-    <ImageButton
-        android:id="@+id/save_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="32dp"
-        android:layout_marginEnd="32dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_save" />
-</android.support.constraint.ConstraintLayout>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/share_button"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:maxLines="1"
+            android:paddingHorizontal="4dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            app:iconGravity="top"
+            app:iconPadding="4dp"
+            android:text="@string/share"
+            app:icon="@drawable/ic_share_24dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/website_button"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_weight="1"
+            android:maxLines="1"
+            android:paddingHorizontal="4dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            app:iconGravity="top"
+            app:iconPadding="4dp"
+            android:text="@string/open"
+            app:icon="@drawable/ic_public_black_24dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/save_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:maxLines="1"
+            android:paddingHorizontal="4dp"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            app:iconGravity="top"
+            app:iconPadding="4dp"
+            android:text="@string/save"
+            app:icon="@drawable/ic_download_24dp" />
+    </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

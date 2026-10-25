@@ -8,9 +8,9 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.PointF
 import android.os.Bundle
-import android.support.design.widget.BottomSheetDialogFragment
-import android.support.v4.app.Fragment
-import android.support.v4.content.ContextCompat
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import androidx.fragment.app.Fragment
+import androidx.core.content.ContextCompat
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -29,10 +29,10 @@ class ScannerFragment : BottomSheetDialogFragment(), QRCodeReaderView.OnQRCodeRe
 
     private var isTorchOn = false
     private var inputView: QRCodeReaderView? = null
-    override fun onCreateView(inflater: LayoutInflater?, container: ViewGroup?,
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,
                               savedInstanceState: Bundle?): View? {
         // Inflate the layout for this fragment
-        val rootView = inflater?.inflate(R.layout.fragment_scanner, container, false)
+        val rootView = inflater.inflate(R.layout.fragment_scanner, container, false)
         inputView = rootView?.findViewById<View>(R.id.qrdecoderview) as QRCodeReaderView
         inputView?.setOnQRCodeReadListener(this)
         val flashButton = rootView.findViewById<ImageView>(R.id.close_button)
@@ -49,7 +49,7 @@ class ScannerFragment : BottomSheetDialogFragment(), QRCodeReaderView.OnQRCodeRe
         // Use this function to enable/disable Torch
 
         inputView?.setBackCamera()
-        if (ContextCompat.checkSelfPermission(activity,
+        if (ContextCompat.checkSelfPermission(requireActivity(),
                 Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
 
             inputView?.startCamera()
@@ -59,7 +59,7 @@ class ScannerFragment : BottomSheetDialogFragment(), QRCodeReaderView.OnQRCodeRe
         return rootView
     }
     override fun onQRCodeRead(text: String?, points: Array<out PointF>?) {
-        val clipboard = activity.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clipboard = requireActivity().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val clip = ClipData.newPlainText("QR Code", text)
         clipboard.setPrimaryClip(clip)
         Toast.makeText(context,"Text Copied to Clipboard",Toast.LENGTH_SHORT).show()

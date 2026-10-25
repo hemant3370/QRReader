@@ -2,13 +2,14 @@ package hemant3370.com.qrreader.Adapters
 
 import android.net.Uri
 import android.provider.MediaStore
-import android.support.v7.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import hemant3370.com.qrreader.R
 import hemant3370.com.qrreader.Storage.QRModel
-import kotlinx.android.synthetic.main.saveditem.view.*
+import android.widget.ImageView
+import android.widget.TextView
 
 
 
@@ -35,13 +36,13 @@ class PastQRcodeAdapter(val qrData: List<QRModel>, val listener: (QRModel) -> Un
 
         fun bindItems(qrData: QRModel, listener: (QRModel) -> Unit) = with(itemView) {
 
-            itemView.textViewText.text = qrData.text
+            itemView.findViewById<TextView>(R.id.textViewText).text = qrData.text
             val uri = Uri.parse(qrData.uri)
             if (uri != null) {
                 val bitmap = MediaStore.Images.Media.getBitmap(itemView.context.contentResolver, uri)
-                if (bitmap != null) { itemView.imageView.setImageBitmap(bitmap) }
+                if (bitmap != null) { itemView.findViewById<ImageView>(R.id.imageView).setImageBitmap(bitmap) }
             }
-            itemView.textViewCreatedAt.text = qrData.createdAt
+            itemView.findViewById<TextView>(R.id.textViewCreatedAt).text = qrData.createdAt
             itemView.setOnClickListener { listener(qrData) }
         }
     }
